@@ -1,0 +1,129 @@
+x-shared: &shared
+  env_file:
+    - vars.env
+  restart: unless-stopped
+
+services:
+  plex:
+    <<: *shared
+    image: lscr.io/linuxserver/plex:latest
+    environment:
+      - VERSION=docker
+    volumes:
+      - "${VOL_ROOT}/plex:/config"
+      - "${VOL_MEDIA}:/media"
+      - "winshare:/winshare"
+    ports:
+      - "192.168.0.156:32400:32400"
+      - 1900:1900/udp
+      - 3005:3005
+      - 5353:5353/udp
+      - 8324:8324
+      - 32410:32410/udp
+      - 32412:32412/udp
+      - 32413:32413/udp
+      - 32414:32414/udp
+      - 32469:32469
+
+  plexsync:
+    <<: *shared
+    image: eben0/plexsync:latest
+
+  qbittorrent: # torrent client
+    <<: *shared
+    image: lscr.io/linuxserver/qbittorrent:latest
+    environment:
+      - WEBUI_PORT=8080
+    volumes:
+      - "${VOL_ROOT}/qbittorrent:/config"
+      - "${VOL_MEDIA}:/media"
+    ports:
+      - 8080:8080
+      - 6881:6881
+      - 6881:6881/udp
+
+  nzbget: # usenet client
+    <<: *shared
+    image: linuxserver/nzbget:latest
+    volumes:
+      - "${VOL_ROOT}/nzbget:/config"
+      - "${VOL_MEDIA}:/media"
+    ports:
+      - 6789:6789
+
+  # movie search
+  radarr:
+    <<: *shared
+    image: linuxserver/radarr:latest
+    volumes:
+      - "${VOL_ROOT}/radarr:/config"
+      - "${VOL_MEDIA}:/media"
+      - "winshare:/winshare"
+    ports:
+      - 7878:7878
+
+  sonarr:
+    <<: *shared
+    image: linuxserver/sonarr:latest
+    volumes:
+      - "${VOL_ROOT}/sonarr:/config"
+      - "${VOL_MEDIA}:/media"
+      - "winshare:/winshare"
+    ports:
+      - 8989:8989
+
+  bazarr:
+    <<: *shared
+    image: linuxserver/bazarr:latest
+    volumes:
+      - "${VOL_ROOT}/bazarr:/config"
+      - "${VOL_MEDIA}:/media"
+      - "winshare:/winshare"
+    ports:
+      - 6767:6767
+
+  prowlarr:
+    <<: *shared
+    image: linuxserver/prowlarr:latest
+    volumes:
+      - "${VOL_ROOT}/prowlarr:/config"
+    ports:
+      - 9696:9696
+
+  ombi:
+    <<: *shared
+    image: linuxserver/ombi:latest
+    volumes:
+      - "${VOL_ROOT}/ombi:/config"
+    ports:
+      - 5000:3579
+
+  db:
+    <<: *shared
+    image: postgres
+    volumes:
+      - db-storage:/var/lib/postgresql/data
+    #ports:
+    #  - 5432:5432
+
+  adminer:
+    <<: *shared
+    image: adminer
+    ports:
+      - 8181:8080
+
+  organizr:
+    <<: *shared
+    image: docker.io/organizr/organizr:latest
+    volumes:
+      - "${VOL_ROOT}/organizr:/config"
+    ports:
+      - 80:80
+
+volumes:
+  db-storage:
+  winshare:
+    driver_opts:
+      type: cifs
+      o: "username=${HOST_USER},password=${HOST_PASS},uid=${PUID},gid=${PGID},vers=3.0,rw"
+      device: "${VOL_WINSHARE}"

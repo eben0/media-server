@@ -1,0 +1,39 @@
+x-shared: &shared
+  image: ghcr.io/onedr0p/exportarr:latest
+  env_file:
+    - vars.env
+  restart: unless-stopped
+
+services:
+  sonarr-exporter:
+    <<: *shared
+    command: ["sonarr"]
+    environment:
+      URL: ${SONARR_URL}
+      APIKEY: ${SONARR_TOKEN}
+    restart: unless-stopped
+
+  radarr-exporter:
+    <<: *shared
+    command: ["radarr"]
+    environment:
+      URL: ${RADARR_URL}
+      APIKEY: ${RADARR_TOKEN}
+    restart: unless-stopped
+
+  prowlarr-exporter:
+    <<: *shared
+    command: ["prowlarr"]
+    environment:
+      URL: ${PROWLARR_TOKEN}
+      APIKEY: ${PROWLARR_TOKEN}
+    restart: unless-stopped
+
+  node-exporter:
+    <<: *shared
+    image: prom/node-exporter:latest
+    command:
+      - '--path.rootfs=/host'
+    network_mode: host
+    volumes:
+      - '/:/host:ro,rslave'
