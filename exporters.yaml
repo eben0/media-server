@@ -2,6 +2,10 @@ x-shared: &shared
   image: ghcr.io/onedr0p/exportarr:latest
   env_file:
     - vars.env
+  logging:
+    driver: loki
+    options:
+      loki-url: "http://${STACK_HOST}:3100/loki/api/v1/push"
   restart: unless-stopped
 
 services:
@@ -25,7 +29,7 @@ services:
     <<: *shared
     command: ["prowlarr"]
     environment:
-      URL: ${PROWLARR_TOKEN}
+      URL: ${PROWLARR_URL}
       APIKEY: ${PROWLARR_TOKEN}
     restart: unless-stopped
 

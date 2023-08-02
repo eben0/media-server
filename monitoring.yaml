@@ -1,5 +1,13 @@
+x-shared: &shared
+  restart: unless-stopped
+  logging:
+    driver: loki
+    options:
+      loki-url: "http://${STACK_HOST}:3100/loki/api/v1/push"
+
 services:
   grafana:
+    <<: *shared
     image: grafana/grafana
     ports:
       - 3000:3000
@@ -7,23 +15,40 @@ services:
       -  grafana-storage:/var/lib/grafana
 
   prometheus:
+    <<: *shared
     image: prom/prometheus
     command:
       - '--config.file=/etc/prometheus/config.yaml'
+      - '--log.level=debug'
     ports:
       - 9090:9090
     volumes:
-      - ./prometheus:/etc/prometheus
+      - "${VOL_ROOT}/monitoring/prometheus.yaml:/etc/prometheus/config.yaml"
       - prom-storage:/prometheus
     depends_on:
       - cadvisor
+
+  loki:
+    image: grafana/loki:2.8.0
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - "${VOL_ROOT}/monitoring/loki.yaml:/etc/loki/config.yaml"
+    ports:
+      - 3100:3100
+    restart: unless-stopped
+
+  promtail:
+    image: grafana/promtail:2.8.0
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - /var/log:/var/log
+      - "${VOL_ROOT}/monitoring/promtail.yaml:/etc/promtail/config.yml"
     restart: unless-stopped
 
   cadvisor:
+    <<: *shared
     image: gcr.io/cadvisor/cadvisor:latest
     privileged: true
-    ports:
-      - 88:8080
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
@@ -32,22 +57,22 @@ services:
       - /dev/disk/:/dev/disk:ro
     depends_on:
       - redis
-    restart: unless-stopped
 
   redis:
+    <<: *shared
     image: redis:latest
     volumes:
       - redis-storage:/data
     restart: unless-stopped
 
   portainer:
+    <<: *shared
     image: portainer/portainer-ce:latest
     ports:
       - 9000:9000
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - portainer-storage:/data
-    restart: unless-stopped
 
 volumes:
   grafana-storage:
