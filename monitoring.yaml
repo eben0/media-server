@@ -1,9 +1,11 @@
 x-shared: &shared
   restart: unless-stopped
+  extra_hosts:
+    - host.docker.internal:host-gateway
   logging:
     driver: loki
     options:
-      loki-url: "http://${STACK_HOST}:3100/loki/api/v1/push"
+      loki-url: "http://localhost:3100/loki/api/v1/push"
 
 services:
   grafana:
@@ -20,8 +22,6 @@ services:
     command:
       - '--config.file=/etc/prometheus/config.yaml'
       - '--log.level=debug'
-    ports:
-      - 9090:9090
     volumes:
       - "${VOL_ROOT}/monitoring/prometheus.yaml:/etc/prometheus/config.yaml"
       - prom-storage:/prometheus
@@ -29,6 +29,7 @@ services:
       - cadvisor
 
   loki:
+    <<: *shared
     image: grafana/loki:2.8.0
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
@@ -38,6 +39,7 @@ services:
     restart: unless-stopped
 
   promtail:
+    <<: *shared
     image: grafana/promtail:2.8.0
     command: -config.file=/etc/promtail/config.yml
     volumes:
@@ -55,15 +57,6 @@ services:
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
-    depends_on:
-      - redis
-
-  redis:
-    <<: *shared
-    image: redis:latest
-    volumes:
-      - redis-storage:/data
-    restart: unless-stopped
 
   portainer:
     <<: *shared

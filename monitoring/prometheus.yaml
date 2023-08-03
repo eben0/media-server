@@ -19,7 +19,7 @@ scrape_configs:
       - targets:
         - 'localhost:9090'
         - 'cadvisor:8080'
-        - '192.168.0.156:9100' # host machine
+        - 'host.docker.internal:9100' # host machine
 
   - job_name: 'sonarr'
     static_configs:
