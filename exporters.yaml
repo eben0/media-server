@@ -32,3 +32,12 @@ services:
       URL: ${PROWLARR_URL}
       APIKEY: ${PROWLARR_TOKEN}
     restart: unless-stopped
+
+  node-exporter:
+    <<: *shared
+    image: prom/node-exporter:latest
+    command:
+      - "--path.rootfs=/host"
+    network_mode: host
+    volumes:
+      - "/:/host:ro,rslave"
