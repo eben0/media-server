@@ -58,6 +58,15 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
 
+  node-exporter:
+    <<: *shared
+    image: prom/node-exporter:latest
+    command:
+      - "--path.rootfs=/host"
+    network_mode: host
+    volumes:
+      - "/:/host:ro,rslave"
+
   portainer:
     <<: *shared
     image: portainer/portainer-ce:latest

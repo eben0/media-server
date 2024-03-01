@@ -13,6 +13,7 @@ services:
     image: lscr.io/linuxserver/plex:latest
     environment:
       - VERSION=docker
+      #- PLEX_CLAIM=claim-AgxRVcHN4CoKnxWhHpAT
     volumes:
       - "${VOL_ROOT}/plex:/config"
       - "${VOL_MEDIA}:/media"
@@ -29,6 +30,19 @@ services:
       - 32414:32414/udp
       - 32469:32469
 
+  jellyfin:
+    <<: *shared
+    image: linuxserver/jellyfin:latest
+    volumes:
+      - "${VOL_ROOT}/jellyfin:/config"
+      - "${VOL_MEDIA}:/media"
+      - "winshare:/winshare"
+    ports:
+      - 8096:8096
+      - 8020:8020
+      - 7359:7359/udp
+      #- 1900:1900/udp
+
   plexsync:
     <<: *shared
     image: eben0/plexsync:latest
@@ -41,6 +55,7 @@ services:
     volumes:
       - "${VOL_ROOT}/qbittorrent:/config"
       - "${VOL_MEDIA}:/media"
+      - "winshare:/winshare"
     ports:
       - 8080:8080
       - 6881:6881
@@ -52,6 +67,7 @@ services:
     volumes:
       - "${VOL_ROOT}/nzbget:/config"
       - "${VOL_MEDIA}:/media"
+      - "winshare:/winshare"
     ports:
       - 6789:6789
 
@@ -102,27 +118,46 @@ services:
     ports:
       - 5000:3579
 
-  db:
+  tautulli:
     <<: *shared
-    image: postgres
+    image: ghcr.io/tautulli/tautulli:latest
     volumes:
-      - db-storage:/var/lib/postgresql/data
-    #ports:
-    #  - 5432:5432
+      - "${VOL_ROOT}/tautulli:/config"
+    ports:
+      - 8181:8181
 
-  #adminer:
+  #db:
   #  <<: *shared
-  #  image: adminer
+  #  image: postgres:15.4
+  #  volumes:
+  #    - db-storage:/var/lib/postgresql/data
   #  ports:
-  #    - 8181:8080
+  #    - 5432:5432
+
+  #pgadmin:
+  #  <<: *shared
+  #  image: dpage/pgadmin4
+  #  volumes:
+  #    - "${VOL_ROOT}/pgadmin:/var/lib/pgadmin:rw"
+  #  ports:
+  #    - 8888:80
 
   organizr:
     <<: *shared
+    environment:
+      - fpm=true
+      - branch=v2-master # or v2-develop
     image: docker.io/organizr/organizr:latest
     volumes:
       - "${VOL_ROOT}/organizr:/config"
     ports:
       - 80:80
+  
+  flaresolverr:
+    <<: *shared
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    ports:
+      - 8191:8191
 
 volumes:
   db-storage:
