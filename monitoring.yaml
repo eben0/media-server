@@ -6,15 +6,22 @@ x-shared: &shared
     driver: loki
     options:
       loki-url: "http://localhost:3100/loki/api/v1/push"
+      mode: non-blocking
+      max-buffer-size: 4m
+      loki-retries: "3"
 
 services:
   grafana:
     <<: *shared
     image: grafana/grafana
-    ports:
-      - 3000:3000
+    environment:
+      GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s:%(http_port)s/grafana"
+      GF_SERVER_SERVE_FROM_SUB_PATH: true
     volumes:
       -  grafana-storage:/var/lib/grafana
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
 
   prometheus:
     <<: *shared
@@ -23,7 +30,7 @@ services:
       - '--config.file=/etc/prometheus/config.yaml'
       - '--log.level=debug'
     volumes:
-      - "${VOL_ROOT}/monitoring/prometheus.yaml:/etc/prometheus/config.yaml"
+      - "./monitoring/prometheus.yaml:/etc/prometheus/config.yaml"
       - prom-storage:/prometheus
     depends_on:
       - cadvisor
@@ -33,9 +40,7 @@ services:
     image: grafana/loki:2.8.0
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
-      - "${VOL_ROOT}/monitoring/loki.yaml:/etc/loki/config.yaml"
-    ports:
-      - 3100:3100
+      - "./monitoring/loki.yaml:/etc/loki/config.yaml"
     restart: unless-stopped
 
   promtail:
@@ -44,7 +49,7 @@ services:
     command: -config.file=/etc/promtail/config.yml
     volumes:
       - /var/log:/var/log
-      - "${VOL_ROOT}/monitoring/promtail.yaml:/etc/promtail/config.yml"
+      - "./monitoring/promtail.yaml:/etc/promtail/config.yml"
     restart: unless-stopped
 
   cadvisor:
@@ -66,6 +71,11 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - portainer-storage:/data
+    #labels:
+    #  - "traefik.enable=true"
+    #  - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+    #  - "traefik.http.middlewares.portainer-strip.stripprefix.prefixes=/portainer"
+    #  - "traefik.http.routers.portainer.middlewares=portainer-strip"
 
 volumes:
   grafana-storage:

@@ -1,0 +1,14 @@
+## traefik.yml
+
+# Docker configuration backend
+providers:
+  docker:
+    exposedByDefault: false
+    defaultRule: 'Host(`${DOMAIN}`) && PathPrefix(`/{{ .Name | trimSuffix (index .Labels "com.docker.compose.project") | trimSuffix "-" }}`)'
+
+
+# API and dashboard configuration
+api:
+  insecure: true
+
+accessLog: {}

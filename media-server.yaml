@@ -6,6 +6,9 @@ x-shared: &shared
     driver: loki
     options:
       loki-url: "http://localhost:3100/loki/api/v1/push"
+      mode: non-blocking
+      max-buffer-size: 4m
+      loki-retries: "3"
 
 services:
   plex:
@@ -42,24 +45,41 @@ services:
       - 8020:8020
       - 7359:7359/udp
       #- 1900:1900/udp
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
 
   plexsync:
     <<: *shared
     image: eben0/plexsync:latest
 
-  qbittorrent: # torrent client
+  qb: # torrent client
     <<: *shared
     image: lscr.io/linuxserver/qbittorrent:latest
     environment:
-      - WEBUI_PORT=8080
+      - WEBUI_PORT=8081
     volumes:
       - "${VOL_ROOT}/qbittorrent:/config"
       - "${VOL_MEDIA}:/media"
       - "winshare:/winshare"
     ports:
-      - 8080:8080
+      - 8081:8081
       - 6881:6881
       - 6881:6881/udp
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.qb.rule=PathPrefix(`/qb`)"
+      - "traefik.http.middlewares.qb-redirect.redirectregex.regex=^(.*)/qb$$"
+      - "traefik.http.middlewares.qb-redirect.redirectregex.replacement=$$1/qb/"
+      - "traefik.http.middlewares.qb-strip.stripprefix.prefixes=/qb/"
+      # appropropriate header changes
+      - "traefik.http.middlewares.qb-headers.headers.customrequestheaders.X-Frame-Options=SAMEORIGIN"
+      - "traefik.http.middlewares.qb-headers.headers.customrequestheaders.Referer="
+      - "traefik.http.middlewares.qb-headers.headers.customrequestheaders.Origin="
+      - "traefik.http.routers.qb.middlewares=qb-strip,qb-redirect,qb-headers"
+      # loadbalancer to *not* pass the host header
+      - "traefik.http.services.qb.loadbalancer.server.port=8081"
+      - "traefik.http.services.qb.loadbalancer.passhostheader=false"
 
   nzbget: # usenet client
     <<: *shared
@@ -70,6 +90,8 @@ services:
       - "winshare:/winshare"
     ports:
       - 6789:6789
+    labels:
+      - "traefik.enable=true"
 
   # movie search
   radarr:
@@ -81,6 +103,8 @@ services:
       - "winshare:/winshare"
     ports:
       - 7878:7878
+    labels:
+      - "traefik.enable=true"
 
   sonarr:
     <<: *shared
@@ -91,6 +115,8 @@ services:
       - "winshare:/winshare"
     ports:
       - 8989:8989
+    labels:
+      - "traefik.enable=true"
 
   bazarr:
     <<: *shared
@@ -101,6 +127,8 @@ services:
       - "winshare:/winshare"
     ports:
       - 6767:6767
+    labels:
+      - "traefik.enable=true"
 
   prowlarr:
     <<: *shared
@@ -109,6 +137,8 @@ services:
       - "${VOL_ROOT}/prowlarr:/config"
     ports:
       - 9696:9696
+    labels:
+      - "traefik.enable=true"
 
   ombi:
     <<: *shared
@@ -117,6 +147,10 @@ services:
       - "${VOL_ROOT}/ombi:/config"
     ports:
       - 5000:3579
+    environment:
+      BASE_URL: /ombi
+    labels:
+      - "traefik.enable=true"
 
   tautulli:
     <<: *shared
@@ -125,6 +159,8 @@ services:
       - "${VOL_ROOT}/tautulli:/config"
     ports:
       - 8181:8181
+    labels:
+      - "traefik.enable=true"
 
   #db:
   #  <<: *shared
@@ -151,13 +187,31 @@ services:
     volumes:
       - "${VOL_ROOT}/organizr:/config"
     ports:
-      - 80:80
+      - 81:80
+    labels:
+      - "traefik.enable=true"
+      - traefik.http.routers.organizr.rule=PathPrefix(`/`)
   
   flaresolverr:
     <<: *shared
     image: ghcr.io/flaresolverr/flaresolverr:latest
+
+  reverse-proxy:
+    <<: *shared
+    image: traefik:v2.11
     ports:
-      - 8191:8191
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - ./proxy/traefik.yml:/etc/traefik/traefik.yml
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  ddclient:
+    <<: *shared
+    image: lscr.io/linuxserver/ddclient:latest
+    volumes:
+      - ./ddclient/ddclient.conf:/tmp/ddclient.conf
+      - ./ddclient/env_config.sh:/custom-cont-init.d/env_config.sh:ro
 
 volumes:
   db-storage:
