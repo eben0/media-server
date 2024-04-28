@@ -41,6 +41,5 @@ services:
     image: prom/node-exporter:latest
     command:
       - "--path.rootfs=/host"
-    network_mode: host
     volumes:
       - "/:/host:ro,rslave"

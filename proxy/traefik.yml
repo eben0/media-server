@@ -4,11 +4,39 @@
 providers:
   docker:
     exposedByDefault: false
-    defaultRule: 'Host(`${DOMAIN}`) && PathPrefix(`/{{ .Name | trimSuffix (index .Labels "com.docker.compose.project") | trimSuffix "-" }}`)'
+    defaultRule: 'Host(`{{ env "DOMAIN" }}`) && PathPrefix(`/{{ .Name | trimSuffix (index .Labels "com.docker.compose.project") | trimSuffix "-" }}`)'
+    watch: true
 
 
-# API and dashboard configuration
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+  websecure:
+    address: ":443"
+
+
+certificatesResolvers:
+  myresolver:
+    acme:
+      email: '{{ env "EMAIL" }}'
+      storage: /etc/acme/acme.json
+      httpChallenge:
+        entryPoint: web
+
 api:
+  dashboard: true
   insecure: true
 
 accessLog: {}
+
+metrics:
+  prometheus:
+    addEntryPointsLabels: true
+    addRoutersLabels: true
+    addServicesLabels: true

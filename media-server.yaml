@@ -11,12 +11,41 @@ x-shared: &shared
       loki-retries: "3"
 
 services:
+  traefik:
+    <<: *shared
+    image: traefik:v2.11
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    configs:
+      - source: traefik_config
+        target: /etc/traefik/traefik.yml
+    volumes:
+      #- ./proxy/traefik.yml:/etc/traefik/traefik.yml
+      - /var/run/docker.sock:/var/run/docker.sock
+      - acme:/etc/acme
+  organizr:
+    <<: *shared
+    environment:
+      - fpm=true
+      - branch=v2-master # or v2-develop
+    image: docker.io/organizr/organizr:latest
+    volumes:
+      - "${VOL_ROOT}/organizr:/config"
+    ports:
+      - 81:80
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.organizr.rule=Host(`${DOMAIN}`)
+      - traefik.http.routers.organizr.tls=true
+      - traefik.http.routers.organizr.tls.certresolver=myresolver
   plex:
     <<: *shared
     image: lscr.io/linuxserver/plex:latest
     environment:
       - VERSION=docker
-      #- PLEX_CLAIM=claim-AgxRVcHN4CoKnxWhHpAT
+      #- PLEX_CLAIM=xxx
     volumes:
       - "${VOL_ROOT}/plex:/config"
       - "${VOL_MEDIA}:/media"
@@ -32,6 +61,11 @@ services:
       - 32413:32413/udp
       - 32414:32414/udp
       - 32469:32469
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.plex.tls=true
+      - traefik.http.routers.plex.tls.certresolver=myresolver
+      - traefik.http.services.plex.loadbalancer.server.port=32400
 
   jellyfin:
     <<: *shared
@@ -68,7 +102,6 @@ services:
       - 6881:6881/udp
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.qb.rule=PathPrefix(`/qb`)"
       - "traefik.http.middlewares.qb-redirect.redirectregex.regex=^(.*)/qb$$"
       - "traefik.http.middlewares.qb-redirect.redirectregex.replacement=$$1/qb/"
       - "traefik.http.middlewares.qb-strip.stripprefix.prefixes=/qb/"
@@ -80,6 +113,8 @@ services:
       # loadbalancer to *not* pass the host header
       - "traefik.http.services.qb.loadbalancer.server.port=8081"
       - "traefik.http.services.qb.loadbalancer.passhostheader=false"
+      - traefik.http.routers.qb.tls=true
+      - traefik.http.routers.qb.tls.certresolver=myresolver
 
   nzbget: # usenet client
     <<: *shared
@@ -91,8 +126,9 @@ services:
     ports:
       - 6789:6789
     labels:
-      - "traefik.enable=true"
-
+      - traefik.enable=true
+      - traefik.http.routers.nzbget.tls=true
+      - traefik.http.routers.nzbget.tls.certresolver=myresolver
   # movie search
   radarr:
     <<: *shared
@@ -104,7 +140,9 @@ services:
     ports:
       - 7878:7878
     labels:
-      - "traefik.enable=true"
+      - traefik.enable=true
+      - traefik.http.routers.radarr.tls=true
+      - traefik.http.routers.radarr.tls.certresolver=myresolver
 
   sonarr:
     <<: *shared
@@ -116,7 +154,9 @@ services:
     ports:
       - 8989:8989
     labels:
-      - "traefik.enable=true"
+      - traefik.enable=true
+      - traefik.http.routers.sonarr.tls=true
+      - traefik.http.routers.sonarr.tls.certresolver=myresolver
 
   bazarr:
     <<: *shared
@@ -128,7 +168,9 @@ services:
     ports:
       - 6767:6767
     labels:
-      - "traefik.enable=true"
+      - traefik.enable=true
+      - traefik.http.routers.bazarr.tls=true
+      - traefik.http.routers.bazarr.tls.certresolver=myresolver
 
   prowlarr:
     <<: *shared
@@ -138,7 +180,9 @@ services:
     ports:
       - 9696:9696
     labels:
-      - "traefik.enable=true"
+      - traefik.enable=true
+      - traefik.http.routers.prowlarr.tls=true
+      - traefik.http.routers.prowlarr.tls.certresolver=myresolver
 
   ombi:
     <<: *shared
@@ -150,7 +194,9 @@ services:
     environment:
       BASE_URL: /ombi
     labels:
-      - "traefik.enable=true"
+      - traefik.enable=true
+      - traefik.http.routers.ombi.tls=true
+      - traefik.http.routers.ombi.tls.certresolver=myresolver
 
   tautulli:
     <<: *shared
@@ -160,7 +206,9 @@ services:
     ports:
       - 8181:8181
     labels:
-      - "traefik.enable=true"
+      - traefik.enable=true
+      - traefik.http.routers.tautulli.tls=true
+      - traefik.http.routers.tautulli.tls.certresolver=myresolver
 
   #db:
   #  <<: *shared
@@ -177,46 +225,27 @@ services:
   #    - "${VOL_ROOT}/pgadmin:/var/lib/pgadmin:rw"
   #  ports:
   #    - 8888:80
-
-  organizr:
-    <<: *shared
-    environment:
-      - fpm=true
-      - branch=v2-master # or v2-develop
-    image: docker.io/organizr/organizr:latest
-    volumes:
-      - "${VOL_ROOT}/organizr:/config"
-    ports:
-      - 81:80
-    labels:
-      - "traefik.enable=true"
-      - traefik.http.routers.organizr.rule=PathPrefix(`/`)
   
   flaresolverr:
     <<: *shared
     image: ghcr.io/flaresolverr/flaresolverr:latest
 
-  reverse-proxy:
-    <<: *shared
-    image: traefik:v2.11
-    ports:
-      - "80:80"
-      - "8080:8080"
-    volumes:
-      - ./proxy/traefik.yml:/etc/traefik/traefik.yml
-      - /var/run/docker.sock:/var/run/docker.sock
-
-  ddclient:
-    <<: *shared
-    image: lscr.io/linuxserver/ddclient:latest
-    volumes:
-      - ./ddclient/ddclient.conf:/tmp/ddclient.conf
-      - ./ddclient/env_config.sh:/custom-cont-init.d/env_config.sh:ro
+  #ddclient:
+  #  <<: *shared
+  #  image: lscr.io/linuxserver/ddclient:latest
+  #  volumes:
+  #    - ./ddclient/ddclient.conf:/tmp/ddclient.conf
+  #    - ./ddclient/env_config.sh:/custom-cont-init.d/env_config.sh:ro
 
 volumes:
   db-storage:
+  acme:
   winshare:
     driver_opts:
       type: cifs
       o: "username=${HOST_USER},password=${HOST_PASS},uid=${PUID},gid=${PGID},vers=3.0,rw"
       device: "${VOL_WINSHARE}"
+
+configs:
+  traefik_config:
+    file: ./proxy/traefik.yml

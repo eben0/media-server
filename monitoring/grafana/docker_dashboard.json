@@ -21,7 +21,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "10.3.3"
+      "version": "10.4.2"
     },
     {
       "type": "panel",
@@ -133,8 +133,7 @@
               }
             ]
           },
-          "unit": "s",
-          "unitScale": true
+          "unit": "s"
         },
         "overrides": []
       },
@@ -145,7 +144,6 @@
         "y": 0
       },
       "id": 24,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
         "colorMode": "none",
@@ -163,7 +161,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.3.3",
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "datasource": {
@@ -217,8 +215,7 @@
               }
             ]
           },
-          "unit": "none",
-          "unitScale": true
+          "unit": "none"
         },
         "overrides": []
       },
@@ -229,7 +226,6 @@
         "y": 0
       },
       "id": 31,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
         "colorMode": "none",
@@ -247,7 +243,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.3.3",
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "datasource": {
@@ -304,8 +300,7 @@
               }
             ]
           },
-          "unit": "percentunit",
-          "unitScale": true
+          "unit": "percentunit"
         },
         "overrides": []
       },
@@ -316,7 +311,6 @@
         "y": 0
       },
       "id": 26,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
         "minVizHeight": 75,
@@ -333,7 +327,7 @@
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
-      "pluginVersion": "10.3.3",
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "datasource": {
@@ -393,8 +387,7 @@
               }
             ]
           },
-          "unit": "percent",
-          "unitScale": true
+          "unit": "percent"
         },
         "overrides": []
       },
@@ -405,7 +398,6 @@
         "y": 0
       },
       "id": 25,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
         "minVizHeight": 75,
@@ -422,7 +414,7 @@
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
-      "pluginVersion": "10.3.3",
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "datasource": {
@@ -480,8 +472,7 @@
               }
             ]
           },
-          "unit": "decbytes",
-          "unitScale": true
+          "unit": "decbytes"
         },
         "overrides": []
       },
@@ -492,7 +483,6 @@
         "y": 0
       },
       "id": 30,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
         "minVizHeight": 75,
@@ -509,7 +499,7 @@
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
-      "pluginVersion": "10.3.3",
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "datasource": {
@@ -568,8 +558,7 @@
               }
             ]
           },
-          "unit": "percentunit",
-          "unitScale": true
+          "unit": "percentunit"
         },
         "overrides": []
       },
@@ -580,7 +569,6 @@
         "y": 0
       },
       "id": 27,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
         "colorMode": "none",
@@ -598,7 +586,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.3.3",
+      "pluginVersion": "10.4.2",
       "targets": [
         {
           "datasource": {
@@ -629,12 +617,6 @@
       },
       "editable": true,
       "error": false,
-      "fieldConfig": {
-        "defaults": {
-          "unitScale": true
-        },
-        "overrides": []
-      },
       "fill": 1,
       "fillGradient": 0,
       "grid": {},
@@ -657,13 +639,12 @@
       },
       "lines": true,
       "linewidth": 1,
-      "links": [],
       "nullPointMode": "null as zero",
       "options": {
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "10.3.3",
+      "pluginVersion": "10.4.2",
       "pointradius": 1,
       "points": false,
       "renderer": "flot",
@@ -740,12 +721,6 @@
       },
       "editable": true,
       "error": false,
-      "fieldConfig": {
-        "defaults": {
-          "unitScale": true
-        },
-        "overrides": []
-      },
       "fill": 1,
       "fillGradient": 0,
       "grid": {},
@@ -768,13 +743,12 @@
       },
       "lines": true,
       "linewidth": 1,
-      "links": [],
       "nullPointMode": "null as zero",
       "options": {
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "10.3.3",
+      "pluginVersion": "10.4.2",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -927,12 +901,6 @@
       "decimals": 0,
       "editable": true,
       "error": false,
-      "fieldConfig": {
-        "defaults": {
-          "unitScale": true
-        },
-        "overrides": []
-      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -954,13 +922,12 @@
       },
       "lines": true,
       "linewidth": 1,
-      "links": [],
       "nullPointMode": "connected",
       "options": {
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "10.3.3",
+      "pluginVersion": "10.4.2",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -1072,12 +1039,6 @@
       },
       "editable": true,
       "error": false,
-      "fieldConfig": {
-        "defaults": {
-          "unitScale": true
-        },
-        "overrides": []
-      },
       "fill": 1,
       "fillGradient": 0,
       "grid": {},
@@ -1100,13 +1061,12 @@
       },
       "lines": true,
       "linewidth": 1,
-      "links": [],
       "nullPointMode": "null as zero",
       "options": {
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "10.3.3",
+      "pluginVersion": "10.4.2",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -1225,12 +1185,6 @@
       },
       "editable": true,
       "error": false,
-      "fieldConfig": {
-        "defaults": {
-          "unitScale": true
-        },
-        "overrides": []
-      },
       "fill": 1,
       "fillGradient": 0,
       "grid": {},
@@ -1253,13 +1207,12 @@
       },
       "lines": true,
       "linewidth": 1,
-      "links": [],
       "nullPointMode": "null as zero",
       "options": {
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "10.3.3",
+      "pluginVersion": "10.4.2",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -1537,12 +1490,6 @@
       },
       "editable": true,
       "error": false,
-      "fieldConfig": {
-        "defaults": {
-          "unitScale": true
-        },
-        "overrides": []
-      },
       "fill": 1,
       "fillGradient": 0,
       "grid": {},
@@ -1565,13 +1512,12 @@
       },
       "lines": true,
       "linewidth": 1,
-      "links": [],
       "nullPointMode": "null as zero",
       "options": {
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "10.3.3",
+      "pluginVersion": "10.4.2",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -1652,12 +1598,6 @@
       },
       "editable": true,
       "error": false,
-      "fieldConfig": {
-        "defaults": {
-          "unitScale": true
-        },
-        "overrides": []
-      },
       "fill": 1,
       "fillGradient": 0,
       "grid": {},
@@ -1682,13 +1622,12 @@
       },
       "lines": true,
       "linewidth": 2,
-      "links": [],
       "nullPointMode": "null as zero",
       "options": {
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "10.3.3",
+      "pluginVersion": "10.4.2",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -1763,12 +1702,6 @@
       },
       "editable": true,
       "error": false,
-      "fieldConfig": {
-        "defaults": {
-          "unitScale": true
-        },
-        "overrides": []
-      },
       "fill": 1,
       "fillGradient": 0,
       "grid": {},
@@ -1795,13 +1728,12 @@
       },
       "lines": true,
       "linewidth": 2,
-      "links": [],
       "nullPointMode": "null as zero",
       "options": {
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "10.3.3",
+      "pluginVersion": "10.4.2",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -1880,12 +1812,6 @@
       },
       "editable": true,
       "error": false,
-      "fieldConfig": {
-        "defaults": {
-          "unitScale": true
-        },
-        "overrides": []
-      },
       "fill": 5,
       "fillGradient": 0,
       "grid": {},
@@ -1910,13 +1836,12 @@
       },
       "lines": true,
       "linewidth": 1,
-      "links": [],
       "nullPointMode": "null as zero",
       "options": {
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "10.3.3",
+      "pluginVersion": "10.4.2",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -1983,12 +1908,6 @@
       },
       "editable": true,
       "error": false,
-      "fieldConfig": {
-        "defaults": {
-          "unitScale": true
-        },
-        "overrides": []
-      },
       "fill": 3,
       "fillGradient": 0,
       "grid": {},
@@ -2013,13 +1932,12 @@
       },
       "lines": true,
       "linewidth": 2,
-      "links": [],
       "nullPointMode": "null as zero",
       "options": {
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "10.3.3",
+      "pluginVersion": "10.4.2",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -2120,13 +2038,12 @@
       },
       "lines": true,
       "linewidth": 2,
-      "links": [],
       "nullPointMode": "null as zero",
       "options": {
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "10.0.3",
+      "pluginVersion": "10.4.2",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -2213,7 +2130,6 @@
         "y": 24
       },
       "id": 36,
-      "links": [],
       "scroll": true,
       "showHeader": true,
       "sort": {
@@ -2303,7 +2219,6 @@
         "y": 31
       },
       "id": 37,
-      "links": [],
       "scroll": true,
       "showHeader": true,
       "sort": {
@@ -2392,7 +2307,6 @@
         "y": 31
       },
       "id": 35,
-      "links": [],
       "scroll": true,
       "showHeader": true,
       "sort": {

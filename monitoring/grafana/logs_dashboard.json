@@ -7,6 +7,14 @@
       "type": "datasource",
       "pluginId": "loki",
       "pluginName": "Loki"
+    },
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
     }
   ],
   "__elements": {},
@@ -15,7 +23,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "10.3.3"
+      "version": "10.4.2"
     },
     {
       "type": "panel",
@@ -27,6 +35,12 @@
       "type": "datasource",
       "id": "loki",
       "name": "Loki",
+      "version": "1.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
       "version": "1.0.0"
     }
   ],
@@ -100,28 +114,28 @@
   "templating": {
     "list": [
       {
+        "allValue": "",
         "current": {},
         "datasource": {
-          "type": "loki",
-          "uid": "${DS_LOKI}"
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
         },
-        "definition": "",
+        "definition": "label_values(container_label_com_docker_compose_service)",
         "hide": 0,
-        "includeAll": true,
+        "includeAll": false,
         "label": "Service",
-        "multi": true,
+        "multi": false,
         "name": "service",
         "options": [],
         "query": {
-          "label": "compose_service",
-          "refId": "LokiVariableQueryEditor-VariableQuery",
-          "stream": "",
-          "type": 1
+          "qryType": 1,
+          "query": "label_values(container_label_com_docker_compose_service)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
-        "refresh": 1,
+        "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
-        "sort": 0,
+        "sort": 8,
         "type": "query"
       },
       {
@@ -208,7 +222,7 @@
   "timepicker": {},
   "timezone": "browser",
   "title": "Logs",
-  "uid": "a950641c-5285-473b-b644-4bcbd2f4eee1",
-  "version": 1,
+  "uid": "fdjhhtfj97ym8c",
+  "version": 7,
   "weekStart": "sunday"
 }
