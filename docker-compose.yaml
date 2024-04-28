@@ -1,6 +1,5 @@
-version: '3.9'
-
 include:
-  - monitoring.yaml
-  - exporters.yaml
-  - media-server.yaml
+  - path:
+    - monitoring.yaml
+    - exporters.yaml
+    - media-server.yaml
