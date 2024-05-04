@@ -1,0 +1,9 @@
+http:
+  middlewares:
+    auth:
+      forwardAuth:
+        address: 'https://{{ env "DOMAIN" }}/api/v2/auth'
+        tls:
+          insecureSkipVerify: false
+        trustForwardHeader: true
+        authResponseHeadersRegex: ^X-Organizr-

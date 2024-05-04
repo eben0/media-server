@@ -1,14 +1,7 @@
 x-shared: &shared
-  restart: unless-stopped
-  extra_hosts:
-    - host.docker.internal:host-gateway
-  logging:
-    driver: loki
-    options:
-      loki-url: "http://localhost:3100/loki/api/v1/push"
-      mode: non-blocking
-      max-buffer-size: 4m
-      loki-retries: "3"
+  extends:
+    file: ./shared.yaml
+    service: shared
 
 services:
   grafana:
@@ -17,6 +10,8 @@ services:
     environment:
       GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s:%(http_port)s/grafana"
       GF_SERVER_SERVE_FROM_SUB_PATH: true
+      GF_AUTH_ANONYMOUS_ENABLED: true
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
     volumes:
       -  grafana-storage:/var/lib/grafana
     labels:
@@ -24,6 +19,7 @@ services:
       - traefik.http.services.grafana.loadbalancer.server.port=3000
       - traefik.http.routers.grafana.tls=true
       - traefik.http.routers.grafana.tls.certresolver=myresolver
+      - traefik.http.routers.grafana.middlewares=auth@file
 
   prometheus:
     <<: *shared
@@ -60,6 +56,9 @@ services:
     <<: *shared
     image: gcr.io/cadvisor/cadvisor:latest
     privileged: true
+    command:
+      - '--housekeeping_interval=55s'
+      - '--docker_only'
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro

@@ -2,11 +2,13 @@
 
 # Docker configuration backend
 providers:
+  file:
+    filename: /etc/traefik/traefik-mw.yml
+    watch: true
   docker:
     exposedByDefault: false
     defaultRule: 'Host(`{{ env "DOMAIN" }}`) && PathPrefix(`/{{ .Name | trimSuffix (index .Labels "com.docker.compose.project") | trimSuffix "-" }}`)'
     watch: true
-
 
 entryPoints:
   web:
@@ -19,7 +21,6 @@ entryPoints:
           permanent: true
   websecure:
     address: ":443"
-
 
 certificatesResolvers:
   myresolver:
