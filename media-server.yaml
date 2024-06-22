@@ -42,6 +42,7 @@ services:
       - "${VOL_ROOT}/plex:/config"
       - "${VOL_MEDIA}:/media"
       - "winshare:/winshare"
+      - "winshare-d:/winshare-d"
     ports:
       - 32400:32400
       - 1900:1900/udp
@@ -59,21 +60,19 @@ services:
       - traefik.http.routers.plex.tls.certresolver=myresolver
       - traefik.http.services.plex.loadbalancer.server.port=32400
 
-  #jellyfin:
-  #  <<: *shared
-  #  image: linuxserver/jellyfin:latest
-  #  volumes:
-  #    - "${VOL_ROOT}/jellyfin:/config"
-  #    - "${VOL_MEDIA}:/media"
-  #    - "winshare:/winshare"
-  #  ports:
-  #    - 8096:8096
-  #    - 8020:8020
-  #    - 7359:7359/udp
-  #    #- 1900:1900/udp
-  #  labels:
-  #    - "traefik.enable=true"
-  #    - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
+  jellyfin:
+    <<: *shared
+    image: linuxserver/jellyfin:latest
+    volumes:
+      - "${VOL_ROOT}/jellyfin:/config"
+      - "${VOL_MEDIA}:/media"
+      - "winshare:/winshare"
+      - "winshare-d:/winshare-d"
+    ports:
+      - 8096:8096
+      - 8020:8020
+      - 7359:7359/udp
+      #- 1900:1900/udp
 
   plexsync:
     <<: *shared
@@ -88,6 +87,8 @@ services:
       - "${VOL_ROOT}/qbittorrent:/config"
       - "${VOL_MEDIA}:/media"
       - "winshare:/winshare"
+      - "winshare-d:/winshare-d"
+      - "winshare-dl:/winshare-dl"
     ports:
       - 6881:6881
       - 6881:6881/udp
@@ -106,7 +107,19 @@ services:
       - "traefik.http.services.qb.loadbalancer.passhostheader=false"
       - traefik.http.routers.qb.tls=true
       - traefik.http.routers.qb.tls.certresolver=myresolver
-
+  i2p:
+    <<: *shared
+    image: geti2p/i2p:latest
+    volumes:
+      - "${VOL_ROOT}/i2p/config:/i2p/.i2p"
+      - "${VOL_ROOT}/i2p/torrents:/i2psnark"
+      - "./i2p/i2p-console.config:/i2p/.i2p/clients.config.d/00-net.i2p.router.web.RouterConsoleRunner-clients.config"
+    ports:
+      - 4444:4444
+      - 6668:6668
+      - 7657:7657
+      - 54321:12345
+      - 54321:12345/udp
   nzbget: # usenet client
     <<: *shared
     image: linuxserver/nzbget:latest
@@ -114,6 +127,7 @@ services:
       - "${VOL_ROOT}/nzbget:/config"
       - "${VOL_MEDIA}:/media"
       - "winshare:/winshare"
+      - "winshare-d:/winshare-d"
     labels:
       - traefik.enable=true
       - traefik.http.routers.nzbget.tls=true
@@ -127,6 +141,7 @@ services:
       - "${VOL_ROOT}/radarr:/config"
       - "${VOL_MEDIA}:/media"
       - "winshare:/winshare"
+      - "winshare-d:/winshare-d"
     labels:
       - traefik.enable=true
       - traefik.http.routers.radarr.tls=true
@@ -140,6 +155,7 @@ services:
       - "${VOL_ROOT}/sonarr:/config"
       - "${VOL_MEDIA}:/media"
       - "winshare:/winshare"
+      - "winshare-d:/winshare-d"
     labels:
       - traefik.enable=true
       - traefik.http.routers.sonarr.tls=true
@@ -153,6 +169,7 @@ services:
       - "${VOL_ROOT}/bazarr:/config"
       - "${VOL_MEDIA}:/media"
       - "winshare:/winshare"
+      - "winshare-d:/winshare-d"
     labels:
       - traefik.enable=true
       - traefik.http.routers.bazarr.tls=true
@@ -228,7 +245,17 @@ volumes:
     driver_opts:
       type: cifs
       o: "username=${HOST_USER},password=${HOST_PASS},uid=${PUID},gid=${PGID},vers=3.0,rw"
-      device: "${VOL_WINSHARE}"
+      device: "${VOL_WINSHARE}/Videos"
+  winshare-d:
+    driver_opts:
+      type: cifs
+      o: "username=${HOST_USER},password=${HOST_PASS},uid=${PUID},gid=${PGID},vers=3.0,rw"
+      device: "${VOL_WINSHARE}/D-Videos"
+  winshare-dl:
+    driver_opts:
+      type: cifs
+      o: "username=${HOST_USER},password=${HOST_PASS},uid=${PUID},gid=${PGID},vers=3.0,rw"
+      device: "${VOL_WINSHARE}/Downloads"
 
 configs:
   traefik_config:
