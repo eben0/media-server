@@ -1,7 +1,7 @@
 x-shared: &shared
   extends:
     file: ./shared.yaml
-    service: shared
+    service: shared-syslog
 
 services:
   grafana:
@@ -33,24 +33,93 @@ services:
     depends_on:
       - cadvisor
 
-  loki:
-    <<: *shared
-    image: grafana/loki:2.8.0
-    command: -config.file=/etc/loki/local-config.yaml
-    ports:
-      - 3100:3100
-    volumes:
-      - "./monitoring/loki.yaml:/etc/loki/config.yaml"
-    restart: unless-stopped
+  #loki:
+  #  <<: *shared
+  #  image: grafana/loki:2.8.0
+  #  command: -config.file=/etc/loki/local-config.yaml
+  #  ports:
+  #    - 3100:3100
+  #  volumes:
+  #    - "./monitoring/loki.yaml:/etc/loki/config.yaml"
+  #  restart: unless-stopped
 
-  promtail:
-    <<: *shared
-    image: grafana/promtail:2.8.0
-    command: -config.file=/etc/promtail/config.yml
+  logstash:
+    depends_on:
+      - opensearch-node
+    # image: docker.elastic.co/logstash/logstash-oss:8.14.3
+    privileged: true
+    user: root
     volumes:
+      - logstash-storage:/var/lib/logstash
       - /var/log:/var/log
-      - "./monitoring/promtail.yaml:/etc/promtail/config.yml"
+      - "./monitoring/logstash/logstash.yml:/etc/logstash/conf/logstash.yml"
+      - "./monitoring/logstash/pipeline/:/usr/share/logstash/pipeline/"
+    ports:
+      - 12201:12201
+      - 12201:12201/udp
+    healthcheck:
+      test: curl telnet://localhost:12201
+
     restart: unless-stopped
+    environment:
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: $OPENSEARCH_INITIAL_ADMIN_PASSWORD
+    build:
+      dockerfile: monitoring/logstash/Dockerfile
+    #command:  bash -c "bin/logstash-plugin install logstash-output-opensearch && /usr/local/bin/docker-entrypoint"
+
+  opensearch-node:
+    image: opensearchproject/opensearch:2
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    environment:
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: $OPENSEARCH_INITIAL_ADMIN_PASSWORD
+      cluster.name: opensearch-cluster
+      node.name: opensearch-node
+      discovery.type: single-node
+      discovery.seed_hosts: opensearch-node
+      bootstrap.memory_lock: true
+      OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
+    healthcheck:
+      test: ["CMD-SHELL", "curl -k -u admin:$$OPENSEARCH_INITIAL_ADMIN_PASSWORD --silent --fail https://localhost:9200/_cluster/health || exit 1"]
+    ports:
+      - 9200:9200
+      - 9600:9600
+    volumes:
+      - opensearch-storage:/usr/share/opensearch/data
+
+  opensearch:
+    depends_on:
+      - opensearch-node
+    image: opensearchproject/opensearch-dashboards:latest
+    expose:
+      - '5601'
+    environment:
+      OPENSEARCH_HOSTS: '["https://opensearch-node:9200"]'
+      SERVER_BASEPATH: '/opensearch'
+      SERVER_REWRITEBASEPATH: true
+      HOME_DISABLEWELCOMESCREEN: true
+      OPENSEARCHDASBOARDS_DEFAULTAPPID: 'discover'
+    #volumes:
+    #  -
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.opensearch.tls=true
+      - traefik.http.routers.opensearch.tls.certresolver=myresolver
+      - traefik.http.routers.opensearch.middlewares=auth@file
+
+  #promtail:
+  #  <<: *shared
+  #  image: grafana/promtail:2.8.0
+  #  command: -config.file=/etc/promtail/config.yml
+  #  volumes:
+  #    - /var/log:/var/log
+  #    - "./monitoring/promtail.yaml:/etc/promtail/config.yml"
+  #  restart: unless-stopped
 
   cadvisor:
     <<: *shared
@@ -66,22 +135,9 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
 
-  portainer:
-    <<: *shared
-    image: portainer/portainer-ce:latest
-    ports:
-      - 9000:9000
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - portainer-storage:/data
-    #labels:
-    #  - "traefik.enable=true"
-    #  - "traefik.http.services.portainer.loadbalancer.server.port=9000"
-    #  - "traefik.http.middlewares.portainer-strip.stripprefix.prefixes=/portainer"
-    #  - "traefik.http.routers.portainer.middlewares=portainer-strip"
-
 volumes:
   grafana-storage:
   prom-storage:
-  portainer-storage:
   redis-storage:
+  logstash-storage:
+  opensearch-storage:

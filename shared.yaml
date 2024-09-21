@@ -10,3 +10,12 @@ services:
           mode: non-blocking
           max-buffer-size: 4m
           loki-retries: "3"
+  shared-syslog:
+      env_file:
+        - vars.env
+      restart: unless-stopped
+      logging:
+        driver: gelf
+        options:
+          gelf-address: "udp://localhost:12201"
+          gelf-compression-type: none

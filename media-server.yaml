@@ -1,7 +1,7 @@
 x-shared: &shared
   extends:
     file: ./shared.yaml
-    service: shared
+    service: shared-syslog
 
 services:
   traefik:
@@ -18,7 +18,7 @@ services:
         target: /etc/traefik/traefik-mw.yml
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - acme:/etc/acme
+      - "${VOL_ROOT}/traefik/acme:/etc/acme"
   organizr:
     <<: *shared
     environment:
@@ -41,8 +41,6 @@ services:
     volumes:
       - "${VOL_ROOT}/plex:/config"
       - "${VOL_MEDIA}:/media"
-      - "winshare:/winshare"
-      - "winshare-d:/winshare-d"
     ports:
       - 32400:32400
       - 1900:1900/udp
@@ -66,13 +64,23 @@ services:
     volumes:
       - "${VOL_ROOT}/jellyfin:/config"
       - "${VOL_MEDIA}:/media"
-      - "winshare:/winshare"
-      - "winshare-d:/winshare-d"
     ports:
       - 8096:8096
       - 8020:8020
       - 7359:7359/udp
       #- 1900:1900/udp
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.jellyfin.tls=true
+      - traefik.http.routers.jellyfin.tls.certresolver=myresolver
+      - traefik.http.services.jellyfin.loadbalancer.server.port=8096
+
+  metatube:
+    <<: *shared
+    image: metatube/metatube-server:1.2.6
+    command: -dsn /config/metatube.db -port 8080
+    volumes:
+      - "${VOL_ROOT}/metatube:/config"
 
   plexsync:
     <<: *shared
@@ -86,9 +94,6 @@ services:
     volumes:
       - "${VOL_ROOT}/qbittorrent:/config"
       - "${VOL_MEDIA}:/media"
-      - "winshare:/winshare"
-      - "winshare-d:/winshare-d"
-      - "winshare-dl:/winshare-dl"
     ports:
       - 6881:6881
       - 6881:6881/udp
@@ -111,11 +116,10 @@ services:
     <<: *shared
     image: geti2p/i2p:latest
     volumes:
+      - "./i2p/i2p-console.config:/i2p/.i2p/clients.config.d/00-console.config"
       - "${VOL_ROOT}/i2p/config:/i2p/.i2p"
       - "${VOL_ROOT}/i2p/torrents:/i2psnark"
-      - "./i2p/i2p-console.config:/i2p/.i2p/clients.config.d/00-net.i2p.router.web.RouterConsoleRunner-clients.config"
     ports:
-      - 4444:4444
       - 6668:6668
       - 7657:7657
       - 54321:12345
@@ -126,8 +130,6 @@ services:
     volumes:
       - "${VOL_ROOT}/nzbget:/config"
       - "${VOL_MEDIA}:/media"
-      - "winshare:/winshare"
-      - "winshare-d:/winshare-d"
     labels:
       - traefik.enable=true
       - traefik.http.routers.nzbget.tls=true
@@ -137,11 +139,11 @@ services:
   radarr:
     <<: *shared
     image: linuxserver/radarr:latest
+    ports:
+      - 7878:7878
     volumes:
       - "${VOL_ROOT}/radarr:/config"
       - "${VOL_MEDIA}:/media"
-      - "winshare:/winshare"
-      - "winshare-d:/winshare-d"
     labels:
       - traefik.enable=true
       - traefik.http.routers.radarr.tls=true
@@ -151,11 +153,11 @@ services:
   sonarr:
     <<: *shared
     image: linuxserver/sonarr:latest
+    ports:
+      - 8989:8989
     volumes:
       - "${VOL_ROOT}/sonarr:/config"
       - "${VOL_MEDIA}:/media"
-      - "winshare:/winshare"
-      - "winshare-d:/winshare-d"
     labels:
       - traefik.enable=true
       - traefik.http.routers.sonarr.tls=true
@@ -168,8 +170,6 @@ services:
     volumes:
       - "${VOL_ROOT}/bazarr:/config"
       - "${VOL_MEDIA}:/media"
-      - "winshare:/winshare"
-      - "winshare-d:/winshare-d"
     labels:
       - traefik.enable=true
       - traefik.http.routers.bazarr.tls=true
@@ -237,25 +237,6 @@ services:
   #  volumes:
   #    - ./ddclient/ddclient.conf:/tmp/ddclient.conf
   #    - ./ddclient/env_config.sh:/custom-cont-init.d/env_config.sh:ro
-
-volumes:
-  db-storage:
-  acme:
-  winshare:
-    driver_opts:
-      type: cifs
-      o: "username=${HOST_USER},password=${HOST_PASS},uid=${PUID},gid=${PGID},vers=3.0,rw"
-      device: "${VOL_WINSHARE}/Videos"
-  winshare-d:
-    driver_opts:
-      type: cifs
-      o: "username=${HOST_USER},password=${HOST_PASS},uid=${PUID},gid=${PGID},vers=3.0,rw"
-      device: "${VOL_WINSHARE}/D-Videos"
-  winshare-dl:
-    driver_opts:
-      type: cifs
-      o: "username=${HOST_USER},password=${HOST_PASS},uid=${PUID},gid=${PGID},vers=3.0,rw"
-      device: "${VOL_WINSHARE}/Downloads"
 
 configs:
   traefik_config:
