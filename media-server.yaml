@@ -231,6 +231,12 @@ services:
     <<: *shared
     image: ghcr.io/flaresolverr/flaresolverr:latest
 
+  unpackerr:
+    <<: *shared
+    image: ghcr.io/unpackerr/unpackerr:latest
+    volumes:
+      - "${VOL_MEDIA}/downloads:/downloads"
+
   #ddclient:
   #  <<: *shared
   #  image: lscr.io/linuxserver/ddclient:latest
