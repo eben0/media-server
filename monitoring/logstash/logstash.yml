@@ -1,0 +1,10 @@
+http.host: "0.0.0.0"
+http.port: 9650
+
+pipeline:
+  batch:
+    size: 125
+    delay: 60
+
+xpack.monitoring.enabled: false
+xpack.management.enabled: false

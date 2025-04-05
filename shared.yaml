@@ -10,6 +10,7 @@ services:
           mode: non-blocking
           max-buffer-size: 4m
           loki-retries: "3"
+      pull_policy: always
   shared-syslog:
       env_file:
         - vars.env
