@@ -20,6 +20,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - "${VOL_ROOT}/traefik/acme:/etc/acme"
   organizr:
+    depends_on:
+      - auth
     <<: *shared
     environment:
       - fpm=true
@@ -32,6 +34,7 @@ services:
       - traefik.http.routers.organizr.rule=Host(`${DOMAIN}`)
       - traefik.http.routers.organizr.tls=true
       - traefik.http.routers.organizr.tls.certresolver=myresolver
+      - traefik.http.routers.organizr.middlewares=auth@file
   plex:
     <<: *shared
     image: lscr.io/linuxserver/plex:latest
@@ -73,18 +76,20 @@ services:
       - traefik.enable=true
       - traefik.http.routers.jellyfin.tls=true
       - traefik.http.routers.jellyfin.tls.certresolver=myresolver
+      - traefik.http.routers.jellyfin.rule=Host(`${MEDIA_SERVER_DOMAIN}`)
+      - traefik.http.routers.jellyfin.middlewares=auth@file
       - traefik.http.services.jellyfin.loadbalancer.server.port=8096
 
   metatube:
     <<: *shared
-    image: metatube/metatube-server:1.2.6
+    image: ghcr.io/metatube-community/metatube-server:latest
     command: -dsn /config/metatube.db -port 8080
     volumes:
       - "${VOL_ROOT}/metatube:/config"
 
-  plexsync:
-    <<: *shared
-    image: eben0/plexsync:latest
+  #plexsync:
+  #  <<: *shared
+  #  image: eben0/plexsync:latest
 
   qb: # torrent client
     <<: *shared
@@ -124,17 +129,17 @@ services:
       - 7657:7657
       - 54321:12345
       - 54321:12345/udp
-  nzbget: # usenet client
-    <<: *shared
-    image: linuxserver/nzbget:latest
-    volumes:
-      - "${VOL_ROOT}/nzbget:/config"
-      - "${VOL_MEDIA}:/media"
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.nzbget.tls=true
-      - traefik.http.routers.nzbget.tls.certresolver=myresolver
-      - traefik.http.routers.nzbget.middlewares=auth@file
+  #nzbget: # usenet client
+  #  <<: *shared
+  #  image: linuxserver/nzbget:latest
+  #  volumes:
+  #    - "${VOL_ROOT}/nzbget:/config"
+  #    - "${VOL_MEDIA}:/media"
+  #  labels:
+  #    - traefik.enable=true
+  #    - traefik.http.routers.nzbget.tls=true
+  #    - traefik.http.routers.nzbget.tls.certresolver=myresolver
+  #    - traefik.http.routers.nzbget.middlewares=auth@file
   # movie search
   radarr:
     <<: *shared
@@ -187,18 +192,18 @@ services:
       - traefik.http.routers.prowlarr.tls.certresolver=myresolver
       - traefik.http.routers.prowlarr.middlewares=auth@file
 
-  ombi:
-    <<: *shared
-    image: linuxserver/ombi:latest
-    volumes:
-      - "${VOL_ROOT}/ombi:/config"
-    environment:
-      BASE_URL: /ombi
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.ombi.tls=true
-      - traefik.http.routers.ombi.tls.certresolver=myresolver
-      - traefik.http.routers.ombi.middlewares=auth@file
+  #ombi:
+  #  <<: *shared
+  #  image: linuxserver/ombi:latest
+  #  volumes:
+  #    - "${VOL_ROOT}/ombi:/config"
+  #  environment:
+  #    BASE_URL: /ombi
+  #  labels:
+  #    - traefik.enable=true
+  #    - traefik.http.routers.ombi.tls=true
+  #    - traefik.http.routers.ombi.tls.certresolver=myresolver
+  #    - traefik.http.routers.ombi.middlewares=auth@file
 
   tautulli:
     <<: *shared
@@ -210,14 +215,6 @@ services:
       - traefik.http.routers.tautulli.tls=true
       - traefik.http.routers.tautulli.tls.certresolver=myresolver
       - traefik.http.routers.tautulli.middlewares=auth@file
-
-  #db:
-  #  <<: *shared
-  #  image: postgres:15.4
-  #  volumes:
-  #    - db-storage:/var/lib/postgresql/data
-  #  ports:
-  #    - 5432:5432
 
   #pgadmin:
   #  <<: *shared
@@ -237,12 +234,79 @@ services:
     volumes:
       - "${VOL_MEDIA}/downloads:/downloads"
 
-  #ddclient:
-  #  <<: *shared
-  #  image: lscr.io/linuxserver/ddclient:latest
-  #  volumes:
-  #    - ./ddclient/ddclient.conf:/tmp/ddclient.conf
-  #    - ./ddclient/env_config.sh:/custom-cont-init.d/env_config.sh:ro
+  ddclient:
+    <<: *shared
+    image: linuxserver/ddclient:3.11.2
+    volumes:
+      - ./ddclient/ddclient.conf:/tmp/ddclient.conf
+      - ./ddclient/env_config.sh:/custom-cont-init.d/env_config.sh:ro
+
+  postgres:
+    <<: *shared
+    image: postgres:16-alpine
+    volumes:
+      - "${VOL_ROOT}/postgres:/var/lib/postgresql/data"
+    environment:
+      POSTGRES_DB: $PG_AUTHENTIK_DB
+
+  redis:
+    <<: *shared
+    image: redis:alpine
+    command: --save 60 1 --loglevel warning
+    restart: unless-stopped
+    volumes:
+      - "${VOL_ROOT}/redis:/data"
+
+  auth:
+    <<: *shared
+    image: ghcr.io/goauthentik/server:2025.4.0
+    restart: unless-stopped
+    command: server
+    environment:
+      AUTHENTIK_SECRET_KEY: $AUTHENTIK_SECRET_KEY
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: postgres
+      AUTHENTIK_POSTGRESQL__USER: $POSTGRES_USER
+      AUTHENTIK_POSTGRESQL__NAME: $PG_AUTHENTIK_DB
+      AUTHENTIK_POSTGRESQL__PASSWORD: $POSTGRES_PASSWORD
+    ports:
+      - 9000:9000
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - "${VOL_ROOT}/authentik/media:/media"
+      - "${VOL_ROOT}/authentik/custom-templates:/templates"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.authentik.tls=true
+      - traefik.http.routers.authentik.tls.certresolver=myresolver
+      - traefik.http.services.authentik.loadbalancer.server.port=9000
+      - traefik.http.services.authentik.loadbalancer.server.url=http://auth:9000/outpost.goauthentik.io
+      - traefik.http.routers.authentik.rule=Host(`${AUTHENTIK_DOMAIN}`)
+      - traefik.http.routers.authentik-outpost.rule=Host(`${DOMAIN}`) && PathPrefix(`/outpost.goauthentik.io/`)
+
+
+  authentik-wrorker:
+    <<: *shared
+    image: ghcr.io/goauthentik/server:2025.4.0
+    restart: unless-stopped
+    command: worker
+    environment:
+      AUTHENTIK_SECRET_KEY: $AUTHENTIK_SECRET_KEY
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: postgres
+      AUTHENTIK_POSTGRESQL__USER: $POSTGRES_USER
+      AUTHENTIK_POSTGRESQL__NAME: $PG_AUTHENTIK_DB
+      AUTHENTIK_POSTGRESQL__PASSWORD: $POSTGRES_PASSWORD
+    user: root
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "${VOL_ROOT}/authentik/media:/media"
+      - "${VOL_ROOT}/authentik/custom-templates:/templates"
+    depends_on:
+      - postgres
+      - redis
 
 configs:
   traefik_config:
