@@ -68,7 +68,7 @@ services:
     #command:  bash -c "bin/logstash-plugin install logstash-output-opensearch && /usr/local/bin/docker-entrypoint"
 
   opensearch-node:
-    image: opensearchproject/opensearch:2
+    image: opensearchproject/opensearch:3
     ulimits:
       memlock:
         soft: -1
@@ -95,7 +95,7 @@ services:
   opensearch:
     depends_on:
       - opensearch-node
-    image: opensearchproject/opensearch-dashboards:latest
+    image: opensearchproject/opensearch-dashboards:3
     expose:
       - '5601'
     environment:
