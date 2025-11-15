@@ -6,7 +6,7 @@ x-shared: &shared
 services:
   traefik:
     <<: *shared
-    image: traefik:v2.11
+    image: traefik:v3.6.1
     ports:
       - "80:80"
       - "443:443"
@@ -282,7 +282,6 @@ services:
       - traefik.enable=true
       - traefik.http.routers.authentik.tls=true
       - traefik.http.routers.authentik.tls.certresolver=myresolver
-      - traefik.http.services.authentik.loadbalancer.server.port=9000
       - traefik.http.services.authentik.loadbalancer.server.url=http://auth:9000/outpost.goauthentik.io
       - traefik.http.routers.authentik.rule=Host(`${AUTHENTIK_DOMAIN}`)
       - traefik.http.routers.authentik-outpost.rule=Host(`${DOMAIN}`) && PathPrefix(`/outpost.goauthentik.io/`)
